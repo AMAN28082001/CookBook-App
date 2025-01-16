@@ -8,7 +8,7 @@ const LoginRegister = () => {
         password: '',
         email: ''
     });
-    const history = useNavigate();
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -24,7 +24,7 @@ const LoginRegister = () => {
             // Handle login logic
             if (formData.username === 'dummyUser' && formData.password === 'dummyPass') {
                 console.log('Logging in with:', formData);
-                history('/home');
+                navigate('/home');
             } else {
                 console.log('Invalid credentials');
             }
