@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 import { dummyCreateRecipe } from '../services/dummyData';
 
 function RecipeCreator() {
@@ -9,16 +7,15 @@ function RecipeCreator() {
   const [thumbnail, setThumbnail] = useState('');
   const [ingredients, setIngredients] = useState('');
 
-  const token = localStorage.getItem('token');
   const userId = localStorage.getItem('userId');
 
-  if (!token) {
-    return <div className="container">Please log in first.</div>;
-  }
-
   const handleCreate = () => {
+    if (!userId) {
+      alert('You must log in to create a recipe.');
+      return;
+    }
     if (!name.trim()) {
-      alert('Please enter a recipe name');
+      alert('Recipe name is required.');
       return;
     }
     dummyCreateRecipe({
@@ -26,9 +23,9 @@ function RecipeCreator() {
       instructions,
       thumbnail,
       ingredients,
-      userId
+      userId,
     });
-    alert('Recipe created!');
+    alert('Recipe created (dummy)!');
     setName('');
     setInstructions('');
     setThumbnail('');
@@ -36,46 +33,67 @@ function RecipeCreator() {
   };
 
   return (
-    <div className="container">
-      <h2>Create Recipe</h2>
+    <div className="px-4 py-8">
+      {/* Center the form with a max width for desktop */}
+      <div className="max-w-md mx-auto bg-white p-6 rounded shadow">
+        <h2 className="text-2xl font-semibold mb-6 text-center">Create Recipe</h2>
 
-      <div className="input-group">
-        <label>Name:</label>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          style={{ display: 'block' }}
-        />
+        {/* Name Field */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700">
+            Name:
+          </label>
+          <input
+            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
+
+        {/* Instructions Field */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700">
+            Instructions (HTML allowed):
+          </label>
+          <textarea
+            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2 h-24 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            value={instructions}
+            onChange={(e) => setInstructions(e.target.value)}
+          />
+        </div>
+
+        {/* Thumbnail URL Field */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700">
+            Thumbnail URL:
+          </label>
+          <input
+            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            value={thumbnail}
+            onChange={(e) => setThumbnail(e.target.value)}
+          />
+        </div>
+
+        {/* Ingredients Field */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700">
+            Ingredients (comma separated):
+          </label>
+          <textarea
+            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2 h-20 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            value={ingredients}
+            onChange={(e) => setIngredients(e.target.value)}
+          />
+        </div>
+
+        {/* Submit Button */}
+        <button
+          onClick={handleCreate}
+          className="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-500 font-medium"
+        >
+          Create
+        </button>
       </div>
-
-      <div className="input-group">
-        <label>Instructions:</label>
-        <ReactQuill
-          theme="snow"
-          value={instructions}
-          onChange={setInstructions}
-          style={{ height: '120px', marginBottom: '1rem' }}
-        />
-      </div>
-
-      <div className="input-group">
-        <label>Thumbnail URL:</label>
-        <input
-          value={thumbnail}
-          onChange={(e) => setThumbnail(e.target.value)}
-          style={{ display: 'block' }}
-        />
-      </div>
-
-      <div className="input-group">
-        <label>Ingredients (comma-separated):</label>
-        <textarea
-          value={ingredients}
-          onChange={(e) => setIngredients(e.target.value)}
-        />
-      </div>
-
-      <button onClick={handleCreate}>Create</button>
     </div>
   );
 }
