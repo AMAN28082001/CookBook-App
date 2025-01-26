@@ -1,3 +1,4 @@
+// controllers/recipeController.js
 const { Op } = require('sequelize');
 const Recipe = require('../models/Recipe');
 const User = require('../models/User');
@@ -115,7 +116,7 @@ exports.getUserRecipes = async (req, res) => {
       order: [['createdAt', 'DESC']],
     });
 
-    // 3) Attach isFavorite to each (optional, if you want to see favorites among your own recipes)
+    // 3) Attach isFavorite to each
     const responseData = recipes.map((recipe) => {
       const plainRecipe = recipe.get({ plain: true });
       plainRecipe.isFavorite = userFavoriteIds.includes(plainRecipe.id);
@@ -127,5 +128,40 @@ exports.getUserRecipes = async (req, res) => {
   } catch (error) {
     console.error('Error fetching user recipes:', error);
     return res.status(500).json({ error: 'Internal server error.' });
+  }
+};
+
+// UPDATE a recipe (PUT /recipes/:id)
+exports.updateRecipe = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, instructions, ingredients, thumbnail } = req.body;
+
+    // Make sure user is logged in
+    if (!req.userId) {
+      return res.status(401).json({ message: 'Unauthorized. User not logged in.' });
+    }
+
+    // Fetch the recipe to ensure it's owned by the current user
+    const recipe = await Recipe.findOne({ where: { id, postedBy: req.userId } });
+    if (!recipe) {
+      return res.status(404).json({ message: 'Recipe not found or not owned by user.' });
+    }
+
+    // Update fields
+    recipe.name = name;
+    recipe.instructions = instructions;
+    recipe.ingredients = ingredients;
+    recipe.thumbnail = thumbnail;
+
+    await recipe.save();
+
+    return res.json({
+      message: 'Recipe updated successfully.',
+      recipe,
+    });
+  } catch (error) {
+    console.error('Error updating recipe:', error);
+    return res.status(500).json({ message: 'Failed to update recipe.', error: error.message });
   }
 };

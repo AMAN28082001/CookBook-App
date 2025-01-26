@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
+// Import ReactQuill
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 function Home({ onToggleFavoriteExternally }) {
   const [recipes, setRecipes] = useState([]);
@@ -68,7 +71,7 @@ function Home({ onToggleFavoriteExternally }) {
         )
       );
 
-      // If you need to notify a parent about changes
+      // Notify parent if needed
       if (onToggleFavoriteExternally) {
         onToggleFavoriteExternally(recipeId, !currentIsFavorite);
       }
@@ -112,6 +115,9 @@ function Home({ onToggleFavoriteExternally }) {
     setShowModal(false);
     setSelectedRecipe(null);
   };
+
+  // Quill readOnly config (no toolbar)
+  const quillModules = { toolbar: false };
 
   return (
     <div className="p-4 relative bg-gray-50 min-h-screen">
@@ -208,11 +214,21 @@ function Home({ onToggleFavoriteExternally }) {
           className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
           onClick={handleCloseModal}
         >
-          {/* Stop click from closing if we click inside the modal itself */}
+          {/* Modal container */}
           <div
-            className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full relative"
+            className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full relative
+                       max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Close "X" icon in the top-right corner */}
+            <button
+              onClick={handleCloseModal}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl font-bold"
+              aria-label="Close"
+            >
+              &times;
+            </button>
+
             {/* Title and Image */}
             <h2 className="text-xl font-semibold mb-4">
               {selectedRecipe.name}
@@ -223,20 +239,27 @@ function Home({ onToggleFavoriteExternally }) {
               className="w-full h-52 object-cover rounded-lg mb-4"
             />
 
-            {/* Ingredients & Instructions with HTML rendering */}
+            {/* Ingredients (read-only Quill) */}
             <h3 className="font-bold mb-2">Ingredients:</h3>
-            <div
-              className="mb-4 prose" 
-              dangerouslySetInnerHTML={{ __html: selectedRecipe.ingredients }}
+            <ReactQuill
+              value={selectedRecipe.ingredients || ""}
+              readOnly={true}
+              modules={quillModules}
+              theme="snow"
+              className="mb-4"
             />
 
+            {/* Instructions (read-only Quill) */}
             <h3 className="font-bold mb-2">Instructions:</h3>
-            <div
-              className="mb-4 prose"
-              dangerouslySetInnerHTML={{ __html: selectedRecipe.instructions }}
+            <ReactQuill
+              value={selectedRecipe.instructions || ""}
+              readOnly={true}
+              modules={quillModules}
+              theme="snow"
+              className="mb-4"
             />
 
-            {/* Close Button */}
+            {/* Bottom Close Button (optional) */}
             <button
               onClick={handleCloseModal}
               className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded"
