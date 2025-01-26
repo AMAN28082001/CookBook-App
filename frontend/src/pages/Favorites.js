@@ -1,45 +1,82 @@
 import React, { useEffect, useState } from 'react';
-import {
-  dummyGetFavorites,
-  dummyRemoveFromFavorites
-} from '../services/dummyData';
+import axios from 'axios';
+import { AiFillHeart, AiOutlineHeart } from 'react-icons/ai';
 
-function Favorites() {
+function Favorites({ onToggleFavorite }) {
   const [favoriteRecipes, setFavoriteRecipes] = useState([]);
-  const [selectedRecipe, setSelectedRecipe] = useState(null); // for modal
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
+  const [notification, setNotification] = useState('');
 
-  const userId = localStorage.getItem('userId');
   const token = localStorage.getItem('token');
 
   useEffect(() => {
-    if (token && userId) {
+    if (token) {
       fetchFavorites();
     }
-    // eslint-disable-next-line
-  }, [token, userId]);
+  }, [token]);
 
-  const fetchFavorites = () => {
-    const data = dummyGetFavorites(userId);
-    setFavoriteRecipes(data);
-  };
-
-  const handleRemove = (recipeId) => {
+  const fetchFavorites = async () => {
     try {
-      dummyRemoveFromFavorites(userId, recipeId);
-      fetchFavorites();
-    } catch (err) {
-      alert(err.message);
+      const response = await axios.get('http://localhost:5000/recipes/favorites', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setFavoriteRecipes(response.data);
+    } catch (error) {
+      if (error.response?.status === 401) {
+        setNotification('Session expired. Please log in again.');
+        localStorage.removeItem('token');
+        localStorage.removeItem('userId');
+        window.location.href = '/login';
+      } else {
+        showNotification('Error fetching favorites.');
+      }
     }
   };
 
-  // Open modal to view recipe details
+  const handleToggleFavorite = async (recipeId, isFavorite) => {
+    try {
+      const url = `http://localhost:5000/recipes/${recipeId}/favorite`;
+
+      // If it's currently favorite, we'll remove it:
+      if (isFavorite) {
+        await axios.delete(url, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        showNotification('Recipe removed from favorites.');
+      } else {
+        // Otherwise, add it
+        await axios.post(url, {}, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        showNotification('Recipe added to favorites.');
+      }
+
+      // Refresh the favorites list
+      fetchFavorites();
+
+      // This notifies Home (if we have it loaded) to flip the heart icon
+      if (onToggleFavorite) {
+        // onToggleFavorite(recipeId, !isFavorite)
+        onToggleFavorite(recipeId, !isFavorite);
+      }
+    } catch (error) {
+      showNotification('Error toggling favorite status.');
+    }
+  };
+
   const handleViewDetails = (recipe) => {
     setSelectedRecipe(recipe);
   };
 
-  // Close modal
   const handleCloseModal = () => {
     setSelectedRecipe(null);
+  };
+
+  const showNotification = (msg) => {
+    setNotification(msg);
+    setTimeout(() => setNotification(''), 3000);
   };
 
   if (!token) {
@@ -47,10 +84,23 @@ function Favorites() {
   }
 
   return (
-    <div className="p-4">
+    <div className="p-4 relative">
+      {/* Notification container */}
+      {notification && (
+        <div className="absolute right-4 top-4 bg-blue-600 text-white px-4 py-2 rounded shadow z-50 animate-fadeIn">
+          {notification}
+        </div>
+      )}
+
       <h2 className="text-xl font-semibold mb-4">Your Favorites</h2>
       {favoriteRecipes.length === 0 ? (
-        <p>No favorite recipes yet.</p>
+        <p>
+          You have no favorite recipes yet.{' '}
+          <a href="/" className="text-blue-600 hover:underline">
+            Explore recipes
+          </a>{' '}
+          to add to your favorites!
+        </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {favoriteRecipes.map((recipe) => (
@@ -60,27 +110,28 @@ function Favorites() {
             >
               <img
                 src={recipe.thumbnail}
-                alt={recipe.name}
+                alt={`Thumbnail of ${recipe.name}`}
                 className="w-full h-40 object-cover rounded mb-2"
               />
               <h4 className="text-lg font-medium">{recipe.name}</h4>
               <p className="text-sm text-gray-500">
-                Posted By: {recipe.postedBy} <br />
-                Posted At:{' '}
-                {new Date(recipe.postedAt).toLocaleDateString()}
+                Posted By: {recipe.user?.name || 'Unknown'} <br />
+                Posted At: {new Date(recipe.postedAt).toLocaleDateString()}
               </p>
-              <div className="mt-auto pt-2 flex flex-col space-y-2">
+              <div className="mt-auto pt-2 flex justify-between items-center">
                 <button
                   onClick={() => handleViewDetails(recipe)}
                   className="text-blue-600 hover:underline text-sm text-left"
                 >
                   View Details
                 </button>
+                {/* This is always a filled heart, since it's in favorites list */}
                 <button
-                  onClick={() => handleRemove(recipe.id)}
-                  className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-500 text-sm"
+                  onClick={() => handleToggleFavorite(recipe.id, true)}
+                  className="text-xl text-red-500 hover:text-red-600"
+                  aria-label="Remove from favorites"
                 >
-                  Remove
+                  <AiFillHeart />
                 </button>
               </div>
             </div>
@@ -92,9 +143,7 @@ function Favorites() {
       {selectedRecipe && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-5 rounded shadow-md max-w-md w-full mx-4">
-            <h2 className="text-xl font-semibold mb-3">
-              {selectedRecipe.name}
-            </h2>
+            <h2 className="text-xl font-semibold mb-3">{selectedRecipe.name}</h2>
             <img
               src={selectedRecipe.thumbnail}
               alt={selectedRecipe.name}
@@ -102,15 +151,14 @@ function Favorites() {
             />
             {selectedRecipe.ingredients && (
               <p className="mb-2">
-                <strong>Ingredients:</strong>{' '}
-                {selectedRecipe.ingredients}
+                <strong>Ingredients:</strong> {selectedRecipe.ingredients}
               </p>
             )}
             {selectedRecipe.instructions && (
               <div
                 className="text-sm text-gray-700 mb-4"
                 dangerouslySetInnerHTML={{
-                  __html: selectedRecipe.instructions
+                  __html: selectedRecipe.instructions,
                 }}
               />
             )}

@@ -4,62 +4,131 @@
 @tailwind components;
 @tailwind utilities;
 
-/* * {
-  box-sizing: border-box;
+/* Navbar.css */
+
+/* The <nav> container */
+.navbar {
+  position: sticky; /* "sticky top-0" */
+  top: 0;
+  z-index: 50; /* "z-50" */
+  background-color: #f3f4f6; /* Tailwind's "bg-gray-100" (#f3f4f6) */
+  border-bottom: 1px solid #e5e7eb; /* "border-b border-gray-200" */
 }
 
-body {
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
-  background-color: #fdfdfd;
+/* The inner container with max-width and horizontal padding */
+.navbar-container {
+  max-width: 1280px; /* "max-w-7xl" */
+  margin: 0 auto;    /* "mx-auto" */
+  padding: 0 1rem;   /* "px-4" for small screens, can adjust for sm:px-6, lg:px-8, etc. */
 }
 
-nav {
-  background-color: #f0f0f0;
-  padding: 1rem;
-}
-
-nav a {
-  margin-right: 1rem;
-  text-decoration: none;
-  color: #333;
-}
-
-nav button {
-  margin-left: 1rem;
-  padding: 0.4rem 0.8rem;
-}
-
-h2 {
-  margin: 1rem 0;
-}
-
-.container {
-  margin: 1rem;
-}
-
-.recipe-card {
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 1rem;
-  margin: 0.5rem;
-  width: 220px;
+/* The flex container that holds brand + nav items */
+.navbar-content {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between; /* "justify-between" */
+  align-items: center;            /* "items-center" */
+  height: 4rem;                   /* "h-16" */
+}
+
+/* Desktop nav menu container (hidden on mobile, shown on md+) */
+.navbar-menu-desktop {
+  display: none; /* hidden by default */
+}
+
+@media (min-width: 768px) { /* "md:flex" in Tailwind is ~768px */
+  .navbar-menu-desktop {
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* "space-x-4" */
+  }
+}
+
+/* Mobile toggle button - hidden on md+ */
+.navbar-toggle {
+  display: inline-flex; 
   align-items: center;
+  justify-content: center;
+  padding: 0.5rem; /* "p-2" */
+  border-radius: 0.375rem; /* "rounded-md" */
+  color: #374151; /* "text-gray-700" */
+  cursor: pointer;
 }
 
-.recipe-card img {
-  max-width: 100%;
-  margin-bottom: 0.5rem;
+@media (min-width: 768px) {
+  .navbar-toggle {
+    display: none; /* hidden on md+ */
+  }
 }
 
-.recipe-cards-container {
-  display: flex;
-  flex-wrap: wrap;
+/* Mobile menu container (shown if isOpen = true) */
+.mobile-menu {
+  display: block;
+  border-top: 1px solid #e5e7eb; /* "border-t border-gray-200" */
 }
 
-.input-group {
-  margin-bottom: 0.8rem;
-} */
+.mobile-menu-items {
+  padding: 0.5rem 0.5rem 0.75rem 0.5rem; /* "px-2 pt-2 pb-3" */
+}
+
+/* Common link styling */
+.nav-link {
+  font-size: 0.875rem; /* "text-sm" */
+  color: #4b5563;      /* "text-gray-700" */
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.nav-link:hover {
+  color: #2563eb;      /* "hover:text-blue-600" */
+}
+
+/* Active nav link: "text-blue-600 font-semibold" */
+.nav-link-active {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+/* Example for the brand link */
+.navbar-brand {
+  font-size: 1.125rem; /* "text-lg" */
+  font-weight: 700;    /* "font-bold" */
+  color: #000;
+  text-decoration: none;
+  margin-right: 1rem;
+  transition: color 0.2s;
+}
+
+.navbar-brand:hover {
+  color: #3b82f6; /* "hover:text-blue-500" */
+}
+
+/* Logout button styling */
+.logout-button {
+  font-size: 0.875rem;  /* "text-sm" */
+  color: #dc2626;       /* "text-red-600" */
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.logout-button:hover {
+  color: #991b1b;       /* "hover:text-red-800" */
+}
+
+/* For the mobile nav links */
+.mobile-nav-link {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.75rem; /* "px-3 py-2" */
+  font-size: 1rem;         /* "text-base" */
+  font-weight: 500;        /* "font-medium" */
+  color: #374151;          /* "text-gray-700" */
+  text-decoration: none;
+  border-radius: 0.375rem; /* "rounded-md" */
+}
+
+.mobile-nav-link:hover {
+  background-color: #e5e7eb; /* "hover:bg-gray-200" */
+  color: #111827;            /* slightly darker text */
+}
